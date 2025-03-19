@@ -55,7 +55,7 @@ contract Voting is Ownable {
     }
 
     //Constructeur du contrat
-    constructor() Ownable(msg.sender) {
+    constructor() {
         status = WorkflowStatus.RegisteringVoters; // Initialise le workflow à l'état d'inscription des électeurs
     }
 

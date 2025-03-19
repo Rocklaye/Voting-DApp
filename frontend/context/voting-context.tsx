@@ -13,7 +13,7 @@ export type Proposal = {
   id: number
   description: string
   voteCount: number
-  proposer: string
+  proposer: tring
 }
 
 export type VotingState = {
