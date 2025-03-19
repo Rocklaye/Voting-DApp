@@ -1,228 +1,140 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react"
-
-export type Voter = {
-  address: string
-  hasVoted: boolean
-  hasProposed: boolean
-  isRegistered: boolean
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
 }
 
-export type Proposal = {
-  id: number
-  description: string
-  voteCount: number
-  proposer: tring
-}
+import { createContext, useContext, useState, useEffect } from "react";
+import { ethers } from "ethers";
+import { Web3Provider } from "@ethersproject/providers";
+import VotingABI from "@/lib/VotingABI.json";
 
-export type VotingState = {
-  registrationOpen: boolean
-  proposalSessionOpen: boolean
-  votingSessionOpen: boolean
-  votingEnded: boolean
-  winningProposalId: number | null
-}
+const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+
+type Proposal = {
+  id: number;
+  description: string;
+  proposer: string;
+};
 
 type VotingContextType = {
-  admin: string
-  currentUser: string
-  setCurrentUser: (address: string) => void
-  voters: Record<string, Voter>
-  addVoter: (address: string) => void
-  removeVoter: (address: string) => void
-  proposals: Proposal[]
-  addProposal: (description: string) => void
-  vote: (proposalId: number) => void
-  votingState: VotingState
-  startProposalRegistration: () => void
-  endProposalRegistration: () => void
-  startVotingSession: () => void
-  endVotingSession: () => void
-  tallyVotes: () => void
-  isAdmin: boolean
-  isRegistered: boolean
-  hasVoted: boolean
-  hasProposed: boolean
-  canPropose: boolean
-  canVote: boolean
-}
+  connectWallet: () => Promise<void>;
+  currentAccount: string | null;
+  contract: ethers.Contract | null;
+  votingState: any;
+  isRegistered: boolean;
+  proposals: Proposal[];
+  loadProposals: () => Promise<void>;
+  addProposal: (description: string) => Promise<void>;
+  hasProposed: boolean; // Ajout de hasProposed
+  canPropose: boolean; // Ajout de canPropose
+};
 
-const VotingContext = createContext<VotingContextType | undefined>(undefined)
+const VotingContext = createContext<VotingContextType | null>(null);
 
-export function VotingProvider({ children }: { children: ReactNode }) {
-  const [admin] = useState("0xAdminAddress")
-  const [currentUser, setCurrentUser] = useState("0xUserAddress")
-  const [voters, setVoters] = useState<Record<string, Voter>>({})
-  const [proposals, setProposals] = useState<Proposal[]>([])
-  const [votingState, setVotingState] = useState<VotingState>({
-    registrationOpen: true,
-    proposalSessionOpen: false,
-    votingSessionOpen: false,
-    votingEnded: false,
-    winningProposalId: null,
-  })
+export const VotingProvider = ({ children }: { children: React.ReactNode }) => {
+  const [provider, setProvider] = useState<Web3Provider | null>(null);
+  const [contract, setContract] = useState<ethers.Contract | null>(null);
+  const [currentAccount, setCurrentAccount] = useState<string | null>(null);
+  const [votingState, setVotingState] = useState<any>({});
+  const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [hasProposed, setHasProposed] = useState<boolean>(false); // État pour hasProposed
+  const [canPropose, setCanPropose] = useState<boolean>(false); // État pour canPropose
 
-  const isAdmin = currentUser === admin
-  const isRegistered = voters[currentUser]?.isRegistered || false
-  const hasVoted = voters[currentUser]?.hasVoted || false
-  const hasProposed = voters[currentUser]?.hasProposed || false
-  const canPropose = isRegistered && votingState.proposalSessionOpen && !hasProposed
-  const canVote = isRegistered && votingState.votingSessionOpen && !hasVoted
-
-  const addVoter = (address: string) => {
-    if (votingState.registrationOpen) {
-      setVoters((prev) => ({
-        ...prev,
-        [address]: {
-          address,
-          hasVoted: false,
-          hasProposed: false,
-          isRegistered: true,
-        },
-      }))
+  const connectWallet = async () => {
+    if (!window.ethereum) {
+      alert("Veuillez installer MetaMask !");
+      return;
     }
-  }
+    const web3Provider = new Web3Provider(window.ethereum);
+    const accounts = await web3Provider.send("eth_requestAccounts", []);
+    setProvider(web3Provider);
+    setCurrentAccount(accounts[0]);
+  };
 
-  const removeVoter = (address: string) => {
-    if (votingState.registrationOpen) {
-      setVoters((prev) => {
-        const newVoters = { ...prev }
-        delete newVoters[address]
-        return newVoters
-      })
+  const loadContract = async () => {
+    if (!provider) return;
+    const signer = provider.getSigner();
+    const votingContract = new ethers.Contract(CONTRACT_ADDRESS, VotingABI.abi, signer);
+    setContract(votingContract);
+
+    const status = await votingContract.status();
+    setVotingState({ status });
+
+    // Vérifiez si l'utilisateur actuel est enregistré
+    const account = await signer.getAddress();
+    const registered = await votingContract.voters(account).then((voter: any) => voter.isRegistered);
+    setIsRegistered(registered);
+
+    // Vérifiez si l'utilisateur a déjà proposé
+    const proposed = await votingContract.voters(account).then((voter: any) => voter.hasProposed);
+    setHasProposed(proposed);
+
+    // Vérifiez si l'utilisateur peut proposer
+    const canProposeNow = registered && status === "ProposalsRegistrationStarted"; // Exemple de statut
+    setCanPropose(canProposeNow);
+  };
+
+  const loadProposals = async () => {
+    if (!contract) return;
+    const proposalCount = await contract.getProposalCount(); // Exemple : méthode Solidity pour obtenir le nombre de propositions
+    const loadedProposals: Proposal[] = [];
+    for (let i = 0; i < proposalCount; i++) {
+      const proposal = await contract.getProposal(i); // Exemple : méthode Solidity pour obtenir une proposition
+      loadedProposals.push({
+        id: i,
+        description: proposal.description,
+        proposer: proposal.proposer,
+      });
     }
-  }
+    setProposals(loadedProposals);
+  };
 
-  const addProposal = (description: string) => {
-    if (votingState.proposalSessionOpen && isRegistered && !hasProposed) {
-      const newProposal: Proposal = {
-        id: proposals.length,
-        description,
-        voteCount: 0,
-        proposer: currentUser,
-      }
-      setProposals((prev) => [...prev, newProposal])
-
-      // Mark user as having proposed
-      setVoters((prev) => ({
-        ...prev,
-        [currentUser]: {
-          ...prev[currentUser],
-          hasProposed: true,
-        },
-      }))
+  const addProposal = async (description: string) => {
+    if (!contract) return;
+    try {
+      const tx = await contract.addProposal(description); // Exemple : méthode Solidity pour ajouter une proposition
+      await tx.wait();
+      await loadProposals(); // Rechargez les propositions après l'ajout
+      setHasProposed(true); // Marquez l'utilisateur comme ayant proposé
+    } catch (error) {
+      console.error("Erreur lors de l'ajout de la proposition :", error);
     }
-  }
+  };
 
-  const vote = (proposalId: number) => {
-    if (votingState.votingSessionOpen && isRegistered && !hasVoted) {
-      setProposals((prev) =>
-        prev.map((proposal) =>
-          proposal.id === proposalId ? { ...proposal, voteCount: proposal.voteCount + 1 } : proposal,
-        ),
-      )
-
-      // Mark user as having voted
-      setVoters((prev) => ({
-        ...prev,
-        [currentUser]: {
-          ...prev[currentUser],
-          hasVoted: true,
-        },
-      }))
+  useEffect(() => {
+    if (provider) {
+      loadContract();
     }
+  }, [provider]);
+
+  return (
+    <VotingContext.Provider
+      value={{
+        connectWallet,
+        currentAccount,
+        contract,
+        votingState,
+        isRegistered,
+        proposals,
+        loadProposals,
+        addProposal,
+        hasProposed, // Ajout de hasProposed dans le contexte
+        canPropose, // Ajout de canPropose dans le contexte
+      }}
+    >
+      {children}
+    </VotingContext.Provider>
+  );
+};
+
+export const useVoting = () => {
+  const context = useContext(VotingContext);
+  if (!context) {
+    throw new Error("useVoting must be used within a VotingProvider");
   }
-
-  const startProposalRegistration = () => {
-    if (isAdmin) {
-      setVotingState((prev) => ({
-        ...prev,
-        registrationOpen: false,
-        proposalSessionOpen: true,
-      }))
-    }
-  }
-
-  const endProposalRegistration = () => {
-    if (isAdmin) {
-      setVotingState((prev) => ({
-        ...prev,
-        proposalSessionOpen: false,
-      }))
-    }
-  }
-
-  const startVotingSession = () => {
-    if (isAdmin) {
-      setVotingState((prev) => ({
-        ...prev,
-        votingSessionOpen: true,
-      }))
-    }
-  }
-
-  const endVotingSession = () => {
-    if (isAdmin) {
-      setVotingState((prev) => ({
-        ...prev,
-        votingSessionOpen: false,
-        votingEnded: true,
-      }))
-    }
-  }
-
-  const tallyVotes = () => {
-    if (isAdmin && votingState.votingEnded) {
-      let maxVotes = 0
-      let winningId = null
-
-      proposals.forEach((proposal) => {
-        if (proposal.voteCount > maxVotes) {
-          maxVotes = proposal.voteCount
-          winningId = proposal.id
-        }
-      })
-
-      setVotingState((prev) => ({
-        ...prev,
-        winningProposalId: winningId,
-      }))
-    }
-  }
-
-  const value = {
-    admin,
-    currentUser,
-    setCurrentUser,
-    voters,
-    addVoter,
-    removeVoter,
-    proposals,
-    addProposal,
-    vote,
-    votingState,
-    startProposalRegistration,
-    endProposalRegistration,
-    startVotingSession,
-    endVotingSession,
-    tallyVotes,
-    isAdmin,
-    isRegistered,
-    hasVoted,
-    hasProposed,
-    canPropose,
-    canVote,
-  }
-
-  return <VotingContext.Provider value={value}>{children}</VotingContext.Provider>
-}
-
-export function useVoting() {
-  const context = useContext(VotingContext)
-  if (context === undefined) {
-    throw new Error("useVoting must be used within a VotingProvider")
-  }
-  return context
-}
-
+  return context;
+};
