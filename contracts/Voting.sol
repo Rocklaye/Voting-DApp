@@ -130,7 +130,7 @@ contract Voting is Ownable {
         status = WorkflowStatus.VotingSessionEnded;
     }
 
-     // 📌 **Fonction pour comptabiliser les votes et déterminer le gagnant**
+     //  **Fonction pour comptabiliser les votes et déterminer le gagnant**
     function tallyVotes() external onlyOwner {
         require(status == WorkflowStatus.VotingSessionEnded, "Les votes ne sont pas encore clos");
 
@@ -148,7 +148,7 @@ contract Voting is Ownable {
         status = WorkflowStatus.VotesTallied; // Mise à jour du statut du vote
     }
 
-    // 📌 **Fonction pour récupérer la proposition gagnante**
+    //  **Fonction pour récupérer la proposition gagnante**
     function getWinner() external view returns (string memory) {
         require(status == WorkflowStatus.VotesTallied, "Le vote n'a pas encore ete comptabilise");
         return proposals[winningProposalId].description; // Retourne la description de la proposition gagnante
