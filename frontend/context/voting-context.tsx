@@ -11,7 +11,7 @@ import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 import VotingABI from "@/lib/VotingABI.json";
 
-const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const CONTRACT_ADDRESS =  "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 type Proposal = {
   id: number;
@@ -25,11 +25,12 @@ type VotingContextType = {
   contract: ethers.Contract | null;
   votingState: any;
   isRegistered: boolean;
+  isAdmin: boolean; // Ajout de isAdmin
   proposals: Proposal[];
   loadProposals: () => Promise<void>;
   addProposal: (description: string) => Promise<void>;
-  hasProposed: boolean; // Ajout de hasProposed
-  canPropose: boolean; // Ajout de canPropose
+  hasProposed: boolean;
+  canPropose: boolean;
 };
 
 const VotingContext = createContext<VotingContextType | null>(null);
@@ -40,9 +41,10 @@ export const VotingProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [votingState, setVotingState] = useState<any>({});
   const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false); // État pour vérifier si l'utilisateur est admin
   const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [hasProposed, setHasProposed] = useState<boolean>(false); // État pour hasProposed
-  const [canPropose, setCanPropose] = useState<boolean>(false); // État pour canPropose
+  const [hasProposed, setHasProposed] = useState<boolean>(false);
+  const [canPropose, setCanPropose] = useState<boolean>(false);
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -68,6 +70,10 @@ export const VotingProvider = ({ children }: { children: React.ReactNode }) => {
     const account = await signer.getAddress();
     const registered = await votingContract.voters(account).then((voter: any) => voter.isRegistered);
     setIsRegistered(registered);
+
+    // Vérifiez si l'utilisateur est l'administrateur
+    const owner = await votingContract.owner(); // Méthode Solidity pour obtenir l'owner
+    setIsAdmin(owner.toLowerCase() === account.toLowerCase());
 
     // Vérifiez si l'utilisateur a déjà proposé
     const proposed = await votingContract.voters(account).then((voter: any) => voter.hasProposed);
@@ -119,11 +125,12 @@ export const VotingProvider = ({ children }: { children: React.ReactNode }) => {
         contract,
         votingState,
         isRegistered,
+        isAdmin, // Ajout de isAdmin dans le contexte
         proposals,
         loadProposals,
         addProposal,
-        hasProposed, // Ajout de hasProposed dans le contexte
-        canPropose, // Ajout de canPropose dans le contexte
+        hasProposed,
+        canPropose,
       }}
     >
       {children}
