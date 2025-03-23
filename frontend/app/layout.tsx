@@ -1,12 +1,20 @@
-import { VotingProvider } from "@/context/voting-context";
-import "./globals.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './globals.css';
+import type { Metadata } from 'next';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export const metadata: Metadata = {
+  title: 'Voting DApp',
+  description: 'Decentralized Voting Application',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body>
-        <VotingProvider>{children}</VotingProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

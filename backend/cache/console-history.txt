@@ -1,0 +1,11 @@
+console.log("Propriétaire du contrat :", owner);
+const owner = await Voting.owner();
+const Voting = await ethers.getContractAt("Voting", "0x5FbDB2315678afecb367f032d93F642f64180aa3");
+console.log("Propriétaire du contrat :", owner);
+const owner = await Voting.owner();
+console.log("Statut actuel :", status);
+const status = await Voting.status();
+const Voting = await ethers.getContractAt("Voting", "0x5FbDB2315678afecb367f032d93F642f64180aa3");
+const status = await Voting.status();
+const Voting = await ethers.getContractAt("Voting", "0x5FbDB2315678afecb367f032d93F642f64180aa3");
+ls
