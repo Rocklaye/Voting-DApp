@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application de Vote</title>
+    <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bienvenue dans l'application de vote</h1>
+            <button id="connectWalletButton" class="btn">Connecter le portefeuille</button>
+            <span id="loadingIndicator" style="display: none; margin-left: 10px; color: #555;">Connexion en cours...</span>
+        </div>
+
+        <div id="votingActions">
+            <button id="getWorkflowStatusButton" class="btn">Afficher l'état du workflow</button>
+            <button id="registerVoterButton" class="admin-action">Enregistrer un électeur</button>
+            <button id="startProposalsRegistrationButton" class="admin-action">Démarrer l'enregistrement des propositions</button>
+            <button id="endProposalsRegistrationButton" class="admin-action">Terminer l'enregistrement des propositions</button>
+            <button id="startVotingButton" class="admin-action">Démarrer la session de vote</button>
+            <button id="endVotingSessionButton" class="admin-action">Terminer la session de vote</button>
+            <button id="tallyVotesButton" class="admin-action">Comptabiliser les votes</button>
+            <button id="submitProposalButton" class="voter-action">Soumettre une proposition</button>
+            <button id="voteButton" class="voter-action">Voter</button>
+            <button id="getWinnerButton" class="admin-action">Voir le gagnant</button>
+        </div>
+        
+        <div id="globalActions">
+            <button id="resetAppButton" class="btn">Réinitialiser l'application</button>
+        </div>
+    </div>
+
+    <script type="module" src="/src/app.js"></script>
+</body>
+</html>

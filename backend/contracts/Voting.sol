@@ -4,7 +4,6 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Voting is Ownable {
-   // address private _owner;
 
     struct Voter {
         bool isRegistered;
@@ -33,6 +32,8 @@ contract Voting is Ownable {
 
     Proposal[] public proposals; //Liste des propositions enregistrees
     uint public winningProposalId; // ID de la proposition gagnante
+
+    address[] public voterAddresses; // Tableau des adresses des électeurs
 
 
     //Evenements
@@ -63,8 +64,9 @@ contract Voting is Ownable {
     function registerVoter(address _voter) external onlyOwner {
         require(status == WorkflowStatus.RegisteringVoters, "L'inscription des electeurs est fermee");
         require(!voters[_voter].isRegistered, "Electeur deja inscrit");
-
+    
         voters[_voter] = Voter(true, false, 0); // Inscription de l'électeur
+        voterAddresses.push(_voter); // Ajoute l'adresse au tableau des électeurs
         emit VoterRegistered(_voter); // Émission d'un événement
     }
 
@@ -133,25 +135,38 @@ contract Voting is Ownable {
      //  **Fonction pour comptabiliser les votes et déterminer le gagnant**
     function tallyVotes() external onlyOwner {
         require(status == WorkflowStatus.VotingSessionEnded, "Les votes ne sont pas encore clos");
-
-        uint winningVoteCount = 0; // Initialisation du nombre de votes maximum
-
-        // Parcourt toutes les propositions pour trouver celle avec le plus de votes
+    
+        uint winningVoteCount = 0;
+    
         for (uint i = 0; i < proposals.length; i++) {
             if (proposals[i].voteCount > winningVoteCount) {
                 winningVoteCount = proposals[i].voteCount;
                 winningProposalId = i;
             }
         }
-
-        emit WorkflowStatusChange(status, WorkflowStatus.VotesTallied); // Émission d'un événement
-        status = WorkflowStatus.VotesTallied; // Mise à jour du statut du vote
+    
+        emit WorkflowStatusChange(status, WorkflowStatus.VotesTallied);
+        status = WorkflowStatus.VotesTallied;
     }
 
     //  **Fonction pour récupérer la proposition gagnante**
     function getWinner() external view returns (string memory) {
         require(status == WorkflowStatus.VotesTallied, "Le vote n'a pas encore ete comptabilise");
-        return proposals[winningProposalId].description; // Retourne la description de la proposition gagnante
+        Proposal memory winningProposal = proposals[winningProposalId];
+        return winningProposal.description;
+    }    
+    
+    function getProposals() public view returns (Proposal[] memory) {
+        return proposals;
     }
     
+    
+    function resetWorkflow() public onlyOwner {
+        status = WorkflowStatus.RegisteringVoters;
+    }
+
+    //Ajouter une fonction pour récupérer les électeurs
+    function getVoters() public view returns (address[] memory) {
+        return voterAddresses;
+    }
 }

@@ -1,0 +1,94 @@
+/* Position fixe pour le bouton de réinitialisation */
+#globalActions {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+#globalActions .btn {
+    background-color: #f44336; /* Rouge pour indiquer une action importante */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#globalActions .btn:hover {
+    background-color: #d32f2f;
+}
+
+#loadingIndicator {
+    font-size: 14px;
+    color: #555;
+    margin-left: 10px;
+}
+
+/* Masquer les boutons admin et voter par défaut */
+.admin-action,
+.voter-action {
+    display: none; /* Masquer les boutons par défaut */
+}
+
+/* Style général pour tous les boutons */
+button {
+    background-color: #4CAF50; /* Vert */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin: 5px;
+}
+
+button:hover {
+    background-color: #45a049; /* Vert foncé au survol */
+}
+
+/* Boutons spécifiques */
+.admin-action {
+    background-color: #2196F3; /* Bleu pour les actions admin */
+}
+
+.admin-action:hover {
+    background-color: #1976D2; /* Bleu foncé au survol */
+}
+
+.voter-action {
+    background-color: #FF9800; /* Orange pour les actions des électeurs */
+}
+
+.voter-action:hover {
+    background-color: #FB8C00; /* Orange foncé au survol */
+}
+
+.proposals-container {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.proposal {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.proposal h3 {
+    margin: 0 0 5px;
+    font-size: 18px;
+    color: #333;
+}
+
+.proposal p {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+}

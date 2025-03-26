@@ -23,17 +23,29 @@ import type {
   TypedContractMethod,
 } from "../common";
 
+export declare namespace Voting {
+  export type ProposalStruct = { description: string; voteCount: BigNumberish };
+
+  export type ProposalStructOutput = [
+    description: string,
+    voteCount: bigint
+  ] & { description: string; voteCount: bigint };
+}
+
 export interface VotingInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "endProposalsRegistration"
       | "endVoterRegistration"
       | "endVotingSession"
+      | "getProposals"
+      | "getVoters"
       | "getWinner"
       | "owner"
       | "proposals"
       | "registerVoter"
       | "renounceOwnership"
+      | "resetWorkflow"
       | "startProposalsRegistration"
       | "startVoterRegistration"
       | "startVotingSession"
@@ -42,6 +54,7 @@ export interface VotingInterface extends Interface {
       | "tallyVotes"
       | "transferOwnership"
       | "vote"
+      | "voterAddresses"
       | "voters"
       | "winningProposalId"
   ): FunctionFragment;
@@ -67,6 +80,11 @@ export interface VotingInterface extends Interface {
     functionFragment: "endVotingSession",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "getProposals",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "getVoters", values?: undefined): string;
   encodeFunctionData(functionFragment: "getWinner", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -79,6 +97,10 @@ export interface VotingInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "resetWorkflow",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -107,6 +129,10 @@ export interface VotingInterface extends Interface {
     values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "vote", values: [BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "voterAddresses",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "voters", values: [AddressLike]): string;
   encodeFunctionData(
     functionFragment: "winningProposalId",
@@ -125,6 +151,11 @@ export interface VotingInterface extends Interface {
     functionFragment: "endVotingSession",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getProposals",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getVoters", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getWinner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "proposals", data: BytesLike): Result;
@@ -134,6 +165,10 @@ export interface VotingInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "resetWorkflow",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -159,6 +194,10 @@ export interface VotingInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "vote", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "voterAddresses",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "voters", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "winningProposalId",
@@ -281,6 +320,14 @@ export interface Voting extends BaseContract {
 
   endVotingSession: TypedContractMethod<[], [void], "nonpayable">;
 
+  getProposals: TypedContractMethod<
+    [],
+    [Voting.ProposalStructOutput[]],
+    "view"
+  >;
+
+  getVoters: TypedContractMethod<[], [string[]], "view">;
+
   getWinner: TypedContractMethod<[], [string], "view">;
 
   owner: TypedContractMethod<[], [string], "view">;
@@ -298,6 +345,8 @@ export interface Voting extends BaseContract {
   >;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+
+  resetWorkflow: TypedContractMethod<[], [void], "nonpayable">;
 
   startProposalsRegistration: TypedContractMethod<[], [void], "nonpayable">;
 
@@ -322,6 +371,8 @@ export interface Voting extends BaseContract {
   >;
 
   vote: TypedContractMethod<[_proposalId: BigNumberish], [void], "nonpayable">;
+
+  voterAddresses: TypedContractMethod<[arg0: BigNumberish], [string], "view">;
 
   voters: TypedContractMethod<
     [arg0: AddressLike],
@@ -351,6 +402,12 @@ export interface Voting extends BaseContract {
     nameOrSignature: "endVotingSession"
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
+    nameOrSignature: "getProposals"
+  ): TypedContractMethod<[], [Voting.ProposalStructOutput[]], "view">;
+  getFunction(
+    nameOrSignature: "getVoters"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
     nameOrSignature: "getWinner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
@@ -368,6 +425,9 @@ export interface Voting extends BaseContract {
   ): TypedContractMethod<[_voter: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "renounceOwnership"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "resetWorkflow"
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "startProposalsRegistration"
@@ -393,6 +453,9 @@ export interface Voting extends BaseContract {
   getFunction(
     nameOrSignature: "vote"
   ): TypedContractMethod<[_proposalId: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "voterAddresses"
+  ): TypedContractMethod<[arg0: BigNumberish], [string], "view">;
   getFunction(
     nameOrSignature: "voters"
   ): TypedContractMethod<

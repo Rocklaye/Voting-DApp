@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/rocklaye/Bureau/Cours/IMT/Blockchain/Hardhat/Voting_DApp/backend/contracts/Voting.sol": {
-      "lastModificationDate": 1742410955844,
-      "contentHash": "2682c11a569135f32f2e64aa4a77a0e0",
+      "lastModificationDate": 1743031318010,
+      "contentHash": "8bb324f91500de6553743d36df2a56f0",
       "sourceName": "contracts/Voting.sol",
       "solcConfig": {
         "version": "0.8.28",
